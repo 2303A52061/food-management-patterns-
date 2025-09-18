@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Online Food Management System</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f7fa; padding: 20px; }
+    h1 { color: #333; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);}
+    button { margin: 5px; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; background-color: #007bff; color: #fff; }
+    button:hover { background-color: #0056b3; }
+    input, select { padding: 6px; margin: 5px 0; width: 100%; }
+    .log { background: #eee; padding: 10px; margin-top: 10px; border-radius: 4px; height: 150px; overflow-y: scroll; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Online Food Management System</h1>
+
+  <label>Enter Order Name:</label>
+  <input type="text" id="orderName" placeholder="e.g., Pizza">
+
+  <label>Select Delivery Type:</label>
+  <select id="deliveryType">
+    <option value="standard">Standard</option>
+    <option value="express">Express</option>
+  </select>
+
+  <button onclick="placeOrder()">Place Order</button>
+  <button onclick="cancelOrder()">Cancel Order</button>
+  <button onclick="updateStatus()">Update Status</button>
+
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+  // --- Observer Pattern ---
+  class Order {
+    constructor(name) {
+      this.name = name;
+      this.status = "Pending";
+      this.observers = [];
+    }
+
+    addObserver(observer) { this.observers.push(observer); }
+    notifyObservers() { this.observers.forEach(obs => obs.update(this.status)); }
+    setStatus(status) { this.status = status; this.notifyObservers(); }
+  }
+
+  class Customer {
+    constructor(name) { this.name = name; }
+    update(status) { log(`Customer ${this.name}: Order is ${status}`); }
+  }
+
+  class Admin {
+    update(status) { log(`Admin: Order status updated to ${status}`); }
+  }
+
+  // --- Strategy Pattern ---
+  class StandardDelivery { calculate(amount) { return amount + 50; } }
+  class ExpressDelivery { calculate(amount) { return amount + 100; } }
+
+  class Delivery {
+    constructor(strategy) { this.strategy = strategy; }
+    setStrategy(strategy) { this.strategy = strategy; }
+    calculate(amount) { return this.strategy.calculate(amount); }
+  }
+
+  // --- Command Pattern ---
+  class Command {
+    execute() {}
+    undo() {}
+  }
+
+  class PlaceOrderCommand extends Command {
+    constructor(order) { super(); this.order = order; }
+    execute() { log(`Order Placed: ${this.order.name}`); }
+    undo() { log(`Undo Place Order: ${this.order.name}`); }
+  }
+
+  class CancelOrderCommand extends Command {
+    constructor(order) { super(); this.order = order; }
+    execute() { log(`Order Canceled: ${this.order.name}`); }
+    undo() { log(`Undo Cancel Order: ${this.order.name}`); }
+  }
+
+  class OrderManager {
+    constructor() { this.history = []; }
+    runCommand(command) { command.execute(); this.history.push(command); }
+    undo() { const command = this.history.pop(); if(command) command.undo(); }
+  }
+
+  // --- System Setup ---
+  let logDiv = document.getElementById("log");
+  function log(msg) { logDiv.innerHTML += msg + "<br>"; logDiv.scrollTop = logDiv.scrollHeight; }
+
+  let order, customer = new Customer("Alice"), admin = new Admin(), manager = new OrderManager();
+
+  function placeOrder() {
+    let name = document.getElementById("orderName").value;
+    if(!name) { alert("Enter order name!"); return; }
+
+    order = new Order(name);
+    order.addObserver(customer);
+    order.addObserver(admin);
+
+    let deliveryType = document.getElementById("deliveryType").value;
+    let delivery = new Delivery(deliveryType === "standard" ? new StandardDelivery() : new ExpressDelivery());
+    let total = delivery.calculate(500); // base price = 500
+
+    log(`Total Amount with delivery: ₹${total}`);
+
+    let cmd = new PlaceOrderCommand(order);
+    manager.runCommand(cmd);
+  }
+
+  function cancelOrder() {
+    if(!order) { alert("No order placed!"); return; }
+    let cmd = new CancelOrderCommand(order);
+    manager.runCommand(cmd);
+  }
+
+  function updateStatus() {
+    if(!order) { alert("No order placed!"); return; }
+    let statuses = ["Cooking", "Ready", "Delivered"];
+    let nextStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    order.setStatus(nextStatus);
+  }
+</script>
+
+</body>
+</html>
