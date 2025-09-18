@@ -173,4 +173,62 @@ function placeOrder(){
   totalPrice=delivery.calculate(totalPrice);
 
   let order=new Order(currentUser, selectedItems,totalPrice,currentUser);
-  order.addObserver(new
+  order.addObserver(new CustomerObserver(currentUser));
+  order.addObserver(new AdminObserver());
+
+  let cmd=new PlaceOrderCommand(order);
+  orderManager.runCommand(cmd);
+  selectedItems=[];
+}
+
+function cancelOrder(){ if(lastOrder){ let cmd=new CancelOrderCommand(lastOrder); orderManager.runCommand(cmd); } }
+
+// --- Admin: Change Status ---
+function changeStatus(order,status){ order.setStatus(status); }
+
+// --- Render Orders ---
+function renderCustomerOrders(){
+  let div=document.getElementById("customerOrders");
+  div.innerHTML="";
+  orders.filter(o=>o.customer===currentUser).forEach(o=>{
+    let card=document.createElement("div");
+    card.className="order-card";
+    let statusEmoji = o.status==="Pending"?"⏳":o.status==="Cooking"?"🍳":o.status==="Ready"?"✅":"📦";
+    card.innerHTML=`<b>${o.items.map(i=>i.name).join(", ")}</b> - ₹${o.total} <span class="badge ${o.status}">${statusEmoji} ${o.status}</span>`;
+    div.appendChild(card);
+  });
+}
+
+function renderAdminOrders(filteredStatus=null){
+  let div=document.getElementById("allOrders");
+  div.innerHTML="";
+  let displayOrders=filteredStatus? orders.filter(o=>o.status===filteredStatus) : orders;
+  displayOrders.forEach(o=>{
+    let card=document.createElement("div");
+    card.className="order-card";
+    let statusButtons=`<div>
+      <button onclick="changeStatus(orders[${orders.indexOf(o)}],'Cooking')">🍳 Cooking</button>
+      <button onclick="changeStatus(orders[${orders.indexOf(o)}],'Ready')">✅ Ready</button>
+      <button onclick="changeStatus(orders[${orders.indexOf(o)}],'Delivered')">📦 Delivered</button>
+    </div>`;
+    let statusEmoji = o.status==="Pending"?"⏳":o.status==="Cooking"?"🍳":o.status==="Ready"?"✅":"📦";
+    card.innerHTML=`<b>${o.customer}</b>: ${o.items.map(i=>i.name).join(", ")} - ₹${o.total} <span class="badge ${o.status}">${statusEmoji} ${o.status}</span>${statusButtons}`;
+    div.appendChild(card);
+  });
+}
+
+// --- Filter Orders ---
+function filterOrders(status){ renderAdminOrders(status); }
+function showAllOrders(){ renderAdminOrders(); }
+
+// --- Notifications ---
+function showNotification(msg){
+  let n=document.getElementById("notification");
+  n.innerText=msg;
+  n.style.display="block";
+  setTimeout(()=>{ n.style.display="none"; },3000);
+}
+</script>
+
+</body>
+</html>
