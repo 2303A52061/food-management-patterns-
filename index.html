@@ -4,24 +4,25 @@
 <meta charset="UTF-8">
 <title>Online Food Management System</title>
 <style>
-body { font-family: Arial, sans-serif; background: #f0f2f5; margin:0; padding:0; }
-header { background: #007bff; color: #fff; padding: 20px; text-align: center; font-size: 1.8em; }
-.container { max-width: 900px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);}
-input, select, button { padding: 10px; margin: 5px 0; width: 100%; border-radius: 5px; border: 1px solid #ccc; }
-button { cursor: pointer; background: #007bff; color: #fff; border: none; font-size: 1em; transition: 0.3s; }
-button:hover { background: #0056b3; }
-.log { background: #f1f3f5; padding: 15px; border-radius: 5px; height: 250px; overflow-y: scroll; margin-top: 10px; }
-.menu-item { display: flex; justify-content: space-between; margin: 5px 0; padding: 5px; border-bottom: 1px solid #ddd; }
-.hidden { display: none; }
-.order-card { border: 1px solid #ddd; padding: 10px; border-radius: 6px; margin: 5px 0; background: #f9f9f9; display:flex; justify-content: space-between; align-items:center; }
-.badge { padding: 3px 8px; border-radius: 4px; font-size: 0.9em; color: #fff; }
-.Pending { background: #ffc107; }
-.Cooking { background: #17a2b8; }
-.Ready { background: #28a745; }
-.Delivered { background: #6c757d; }
-.tab { padding:10px 20px; cursor:pointer; display:inline-block; background:#ddd; margin-right:5px; border-radius:5px; }
-.tab.active { background:#007bff; color:#fff; }
-.notification { position:fixed; top:20px; right:20px; background:#17a2b8; color:#fff; padding:10px 20px; border-radius:5px; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:none; z-index:1000;}
+  /* Professional Theme Colors */
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fb; margin:0; padding:0; color:#333; }
+  header { background: #2c3e50; color: #fff; padding: 20px; text-align: center; font-size: 2em; font-weight: bold; }
+  .container { max-width: 900px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1);}
+  input, select, button { padding: 10px; margin: 5px 0; width: 100%; border-radius: 6px; border: 1px solid #ccc; font-size:1em; }
+  button { cursor: pointer; background: #2980b9; color: #fff; border: none; font-weight:bold; transition: 0.3s; }
+  button:hover { background: #1c5980; }
+  .log { background: #ecf0f1; padding: 15px; border-radius: 8px; height: 250px; overflow-y: auto; margin-top: 15px; }
+  .menu-item { display: flex; justify-content: space-between; margin: 5px 0; padding: 8px; border-bottom: 1px solid #ddd; }
+  .hidden { display: none; }
+  .order-card { border: 1px solid #ddd; padding: 12px; border-radius: 8px; margin: 5px 0; background: #f9f9f9; display:flex; justify-content: space-between; align-items:center; box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+  .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.9em; color: #fff; font-weight:bold; }
+  .Pending { background: #f39c12; }
+  .Cooking { background: #3498db; }
+  .Ready { background: #27ae60; }
+  .Delivered { background: #7f8c8d; }
+  .tab { padding:12px 25px; cursor:pointer; display:inline-block; background:#bdc3c7; margin-right:5px; border-radius:8px; font-weight:bold; }
+  .tab.active { background:#2980b9; color:#fff; }
+  .notification { position:fixed; top:20px; right:20px; background:#2980b9; color:#fff; padding:12px 25px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:none; z-index:1000; font-weight:bold;}
 </style>
 </head>
 <body>
@@ -31,7 +32,7 @@ button:hover { background: #0056b3; }
 <div class="container">
 
 <!-- Tabs -->
-<div id="tabs" class="hidden">
+<div id="tabs" class="hidden" style="margin-bottom:20px;">
   <span class="tab active" onclick="showTab('customerPage')">Customer</span>
   <span class="tab" onclick="showTab('adminPage')">Admin</span>
 </div>
@@ -77,11 +78,13 @@ button:hover { background: #0056b3; }
 
   <h3>All Orders</h3>
   <div id="allOrders" class="log"></div>
-  <button onclick="filterOrders('Pending')">Show Pending</button>
-  <button onclick="filterOrders('Cooking')">Show Cooking</button>
-  <button onclick="filterOrders('Ready')">Show Ready</button>
-  <button onclick="filterOrders('Delivered')">Show Delivered</button>
-  <button onclick="showAllOrders()">Show All</button>
+  <div style="margin-top:10px;">
+    <button onclick="filterOrders('Pending')">Pending</button>
+    <button onclick="filterOrders('Cooking')">Cooking</button>
+    <button onclick="filterOrders('Ready')">Ready</button>
+    <button onclick="filterOrders('Delivered')">Delivered</button>
+    <button onclick="showAllOrders()">Show All</button>
+  </div>
 </div>
 
 </div>
@@ -93,7 +96,7 @@ let currentUser=null, role=null;
 let orders=[], lastOrder=null;
 let selectedItems=[];
 
-// Observer Pattern
+// --- Observer Pattern ---
 class Order {
   constructor(customer, items, total){
     this.customer=customer;
@@ -111,16 +114,14 @@ class CustomerObserver {
   constructor(name){ this.name=name; }
   update(status, order){ renderCustomerOrders(); showNotification(`Your order is ${status}`); }
 }
-class AdminObserver {
-  update(status, order){ renderAdminOrders(); }
-}
+class AdminObserver { update(status, order){ renderAdminOrders(); } }
 
-// Strategy Pattern
+// --- Strategy Pattern ---
 class StandardDelivery { calculate(amount){ return amount+50; } }
 class ExpressDelivery { calculate(amount){ return amount+100; } }
 class Delivery { constructor(strategy){ this.strategy=strategy; } setStrategy(s){ this.strategy=s; } calculate(amount){ return this.strategy.calculate(amount); } }
 
-// Command Pattern
+// --- Command Pattern ---
 class Command { execute(){} undo(){} }
 class PlaceOrderCommand extends Command {
   constructor(order){ super(); this.order=order; }
@@ -134,7 +135,7 @@ class CancelOrderCommand extends Command {
 class OrderManager { constructor(){ this.history=[]; } runCommand(cmd){ cmd.execute(); this.history.push(cmd); } undo(){ const cmd=this.history.pop(); if(cmd) cmd.undo(); } }
 let orderManager=new OrderManager();
 
-// Login
+// --- Login ---
 function login(){
   role=document.getElementById("roleSelect").value;
   currentUser=document.getElementById("userName").value;
@@ -152,7 +153,7 @@ function login(){
   }
 }
 
-// Tabs
+// --- Tabs ---
 function showTab(tabId){
   document.querySelectorAll('#customerPage, #adminPage').forEach(d=>d.classList.add('hidden'));
   document.getElementById(tabId).classList.remove('hidden');
@@ -161,10 +162,10 @@ function showTab(tabId){
   else document.querySelectorAll('.tab')[1].classList.add('active');
 }
 
-// Menu Selection
+// --- Menu Selection ---
 function addToOrder(name, price){ selectedItems.push({name,price}); renderCustomerOrders(); }
 
-// Place / Cancel Order
+// --- Place / Cancel Order ---
 function placeOrder(){
   if(selectedItems.length===0){ alert("Select items!"); return; }
   let deliveryType=document.getElementById("deliveryType").value;
@@ -183,10 +184,10 @@ function placeOrder(){
 
 function cancelOrder(){ if(lastOrder){ let cmd=new CancelOrderCommand(lastOrder); orderManager.runCommand(cmd); } }
 
-// Admin: Change Status
+// --- Admin: Change Status ---
 function changeStatus(order,status){ order.setStatus(status); }
 
-// Render Orders
+// --- Render Orders ---
 function renderCustomerOrders(){
   let div=document.getElementById("customerOrders");
   div.innerHTML="";
@@ -215,11 +216,11 @@ function renderAdminOrders(filteredStatus=null){
   });
 }
 
-// Filter Orders
+// --- Filter Orders ---
 function filterOrders(status){ renderAdminOrders(status); }
 function showAllOrders(){ renderAdminOrders(); }
 
-// Notification
+// --- Notifications ---
 function showNotification(msg){
   let n=document.getElementById("notification");
   n.innerText=msg;
